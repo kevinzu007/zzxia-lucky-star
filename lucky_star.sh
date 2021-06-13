@@ -242,18 +242,22 @@ do
     clear
     if [ "${SHOW_PHOTO}" = 'yes' ]; then
         if [ -f ./my_photo/${NAME}.png ]; then
-            image2ascii  -f ./my_photo/${NAME}.png  -r `F_RATE  ./my_photo/${NAME}.png  0.8`
+            image2ascii  -f ./my_photo/${NAME}.png  -r `F_RATE  ./my_photo/${NAME}.png  0.9`
         elif [ -f ./my_photo/${NAME}.jpg ]; then
-            image2ascii  -f ./my_photo/${NAME}.jpg  -r `F_RATE  ./my_photo/${NAME}.png  0.8`
+            image2ascii  -f ./my_photo/${NAME}.jpg  -r `F_RATE  ./my_photo/${NAME}.png  0.9`
         else
-            image2ascii  -f ./sys_photo/404.png  -r `F_RATE  ./sys_photo/404.png  0.8`
+            image2ascii  -f ./sys_photo/404.png  -r `F_RATE  ./sys_photo/404.png  0.9`
         fi
         read -p "No.$i: 你猜ta是谁？" WHO
         # 再显示名字
-        read -p "【${NAME}】"
-        # 姓名图片
-        #clear
-        #image2ascii -f ./my_photo/${NAME}-2.png -r `F_RATE  ./my_photo/${NAME}.png  0.8`
+        if [ -f ./my_photo/${NAME}-2.png ]; then
+            # 姓名图片
+            clear
+            #image2ascii -f ./my_photo/${NAME}-2.png -r `F_RATE  ./my_photo/${NAME}-2.png  0.9`
+            image2ascii -f ./my_photo/${NAME}-2.png -r `F_RATE  ./my_photo/${NAME}-2.png  1`
+        else
+            read -p "【${NAME}】"
+        fi
     else
         echo '##########################################'
         echo '##########################################'
