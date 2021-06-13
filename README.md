@@ -78,30 +78,32 @@ $ ./lucky_star.sh -h
         2、如果没装image2ascii，将会以纯字符的形式显示
     用法：
         ./lucky_star.sh  [-h|--help]
-        ./lucky_star.sh  <-q|--question>  < <-p|--photo> | <-t|--text> >  <{抽几次}>  <{随机几次}>  <{间隔秒数}>      #--- 默认：抽6次，随机跳跃6次，间隔6秒
+        ./lucky_star.sh  <-q|--question>  < <-p|--photo> | <-t|--text> >  <{抽几次}>  <{旋转几次}>  <{旋转速度}>      #--- 默认：抽6次，旋转6次，旋转速度1秒/次
     参数说明：
-        \$0   : 代表脚本本身
+        $0   : 代表脚本本身
         []   : 代表是必选项
         <>   : 代表是可选项
         |    : 代表左右选其一
         {}   : 代表参数值，请替换为具体参数值
         %    : 代表通配符，非精确值，可以被包含
         #
-        -h|--help        开启问答环节
+        -h|--help        此帮助
         -q|--question    开启问答环节，默认只抽奖
         -p|--photo       显示人员照片，请确保在【./my_photo/】下放了以人员【姓名.png】或【姓名.jpg】的照片
         -t|--text        显示文本，即不显示人员照片
     示例：
         ./lucky_star.sh  -h
-        ./lucky_star.sh
-        ./lucky_star.sh  3
-        ./lucky_star.sh  3 4 5
-        ./lucky_star.sh  -q
-        ./lucky_star.sh  -q  3
-        ./lucky_star.sh  -q  3 4 5
-        ./lucky_star.sh  -q  -p
-        ./lucky_star.sh  -q  -t
-        ./lucky_star.sh  -q  -p  3 4 5
+        ./lucky_star.sh                 #--- 默认（不显示照片，抽6人，旋转6次，旋转速度1秒/次）
+        ./lucky_star.sh  3              #--- 抽3人，其他默认
+        ./lucky_star.sh  3 4 5          #--- 抽3人，旋转4次，旋转速度5秒/次
+        ./lucky_star.sh  -q             #--- 开启问答，其他默认
+        ./lucky_star.sh  -q  3          #--- 开启问答，抽三人，其他默认
+        ./lucky_star.sh  -q  3 4 5      #--- 开启问答，抽3人，旋转4次，旋转速度5秒/次
+        ./lucky_star.sh  -q  -p         #--- 开启问答，显示照片，其他默认
+        ./lucky_star.sh  -q  -t         #--- 开启问答，不显示照片，其他默认
+        ./lucky_star.sh  -q  -p  3 4 5  #--- 开启问答，显示照片，抽3人，旋转4次，旋转速度5秒/次
+
+Good Luck!
 ```
 
 
