@@ -1,7 +1,7 @@
 # zzxia-lucky-star
 
 ## 1 介绍
-抽奖及问答SHELL程序。可以显示中奖人员照片。
+抽奖及问答程序。可以显示中奖人员照片。
 
 ### 1.1 背景
 网上的抽奖程序都是windows的，且很多要收点费用，不如自己做一个。
@@ -105,7 +105,7 @@ $ ./lucky_star.sh -h
 ```
 
 
-#### 参与贡献
+#### 5 参与贡献
 
 1.  Fork 本仓库
 2.  新建 Feat_xxx 分支
@@ -113,7 +113,7 @@ $ ./lucky_star.sh -h
 4.  新建 Pull Request
 
 
-#### 特技
+#### 6 特技
 
 1.  使用 Readme\_XXX.md 来支持不同的语言，例如 Readme\_en.md, Readme\_zh.md
 2.  Gitee 官方博客 [blog.gitee.com](https://blog.gitee.com)
