@@ -36,6 +36,7 @@ Python3
 $ tree
 .
 ├── clean.sh
+├── generate_text_photo.py
 ├── LICENSE
 ├── lucky_star.sh
 ├── my_photo
