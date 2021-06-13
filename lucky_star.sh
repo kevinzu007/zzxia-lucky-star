@@ -18,7 +18,6 @@ CURREND_LIST='/tmp/people.list.tmp'
 cp -f  ${LIST}  ${CURREND_LIST}
 DATE_TIME="`date +%F_%T`"
 CURREND_LIST_TODAY="./people.list---${DATE_TIME}"   #--- 中奖人员
-echo "${DATE_TIME}" > ${CURREND_LIST_TODAY}
 
 
 # 屏幕分辨率:
@@ -184,6 +183,7 @@ fi
 
 
 
+echo "${DATE_TIME}" > ${CURREND_LIST_TODAY}
 for i in $(seq 1 ${PEOPLE_NUM})
 do
     #
