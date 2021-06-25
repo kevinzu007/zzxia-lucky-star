@@ -42,9 +42,16 @@ F_HELP()
 {
     echo "
     用途：抽奖、问答程序
+    依赖：
+        photo方式需要：image2ascii - 图片转文本（https://github.com/qeesung/image2ascii）
+                       convert     - 计算图片长宽（https://github.com/ImageMagick/ImageMagick）
     注意：
-        1、如果安装了image2ascii，可以显示人员的相片（体验更好），需要在【./my_photo/】下放以人员【姓名.png】或【姓名.jpg】的照片
-        2、如果没装image2ascii，将会以纯字符的形式显示
+        1、text方式
+            不需要安装其他软件包，可以直接使用
+        2、photo方式
+            - image2ascii可以支持显示人员的相片（体验更好），需要在【./my_photo/】下放以人员【姓名.png】或【姓名.jpg】的照片
+            - 如果没装image2ascii，将会以纯字符的形式显示
+            - convert可以计算图片的长宽，用以动态适配屏幕，非常棒
     用法：
         $0  [-h|--help]
         $0  <-q|--question>  < <-p|--photo> | <-t|--text> >  <{抽几次}>  <{旋转几次}>  <{旋转速度}>      #--- 默认：抽6次，旋转6次，旋转速度1秒/次
@@ -126,11 +133,26 @@ SLEEP_S=${3:-1}                    #--- 旋转速度（间隔几秒）
 
 
 
-# https://github.com/qeesung/image2ascii
 # 有image2ascii吗？
-if [ "${SHOW_PHOTO}" = 'yes' -a "`which image2ascii > /dev/null 2>&1; echo $?`" -ne 0 ]; then
-    echo -e "峰哥说：没有找到程序【image2ascii】，你可以从这里【https://github.com/qeesung/image2ascii】安装，下面将会以【text】的方式运行"
+if [ "`which image2ascii > /dev/null 2>&1; echo $?`" -ne 0 ]; then
     SHOW_PHOTO='no'
+    echo -e "峰哥说：没有找到程序【image2ascii】，你可以从这里【https://github.com/qeesung/image2ascii】安装，下面将会以【text】的方式运行"
+fi
+
+# 有convert吗？
+if [ "`which convert > /dev/null 2>&1; echo $?`" -ne 0 ]; then
+    SHOW_PHOTO='no'
+    echo -e "峰哥说：没有找到程序【convert】，你可以从这里【https://github.com/ImageMagick/ImageMagick】安装，下面将会以【text】的方式运行"
+    # convert 安装方法示例（centos7，一般系统已经自带了）：
+    # jpeg png支持
+    #yum -y install libjpeg libjpeg-devel libpng libpng-devel
+    # 编译安装
+    #cd /usr/local/src/
+    #git clone  https://github.com/ImageMagick/ImageMagick.git
+    #cd ImageMagick/
+    #./configure
+    #make
+    #make install
 fi
 
 
@@ -143,6 +165,13 @@ F_RATE()
     #
     F_PIC_W=`convert ${F_PIC}  -print "%w\n" 2>/dev/null`
     F_PIC_H=`convert ${F_PIC}  -print "%h\n" 2>/dev/null`
+    # 如果值为空，则预设值（原因可能convert没有图片解码引擎）
+    if [ -z "${F_PIC_W}" ]; then
+        echo -e "\n峰哥说：【convert】解码图片【${F_PIC}】失败，已经将图片设置为【1600x800】了，但仍然建议使用【text】方式\n"
+        sleep 1
+        F_PIC_W=1600
+        F_PIC_H=800
+    fi
     # 取最小的（填满屏幕的倍率）
     F_S_RATE_W=`echo "scale=2; ${S_MAX_W} / ${F_PIC_W}" | bc -l`
     F_S_RATE_H=`echo "scale=2; ${S_MAX_H} / ${F_PIC_H}" | bc -l`
