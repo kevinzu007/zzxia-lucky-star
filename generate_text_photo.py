@@ -1,5 +1,5 @@
-#!/usr/bin/python3.5
-# -*- coding: utf-8 -*-
+#!/usr/bin/python3
+# encoding: utf-8
 
 from typing import Text
 from PIL import Image, ImageDraw, ImageFont
