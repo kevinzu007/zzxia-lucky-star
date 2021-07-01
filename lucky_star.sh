@@ -86,7 +86,7 @@ Good Luck!
 
 TEMP=`getopt -o hqpt  -l help,question,photo,text -- "$@"`
 if [ $? != 0 ]; then
-    echo "参数不合法！【请查看帮助：\$0 --help】"
+    echo "参数不合法！请查看帮助【$0 --help】"
     exit 1
 fi
 #
@@ -118,7 +118,7 @@ do
             break
             ;;
         *)
-            echo "参数错误，请检查！"
+            echo "参数错误，请查看帮助【$0 --help】！"
             exit 1
     esac
 done
