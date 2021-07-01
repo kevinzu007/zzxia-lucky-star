@@ -44,8 +44,7 @@ $ tree
 │   ├── 陆六六.png
 │   ├── 王老五.png
 │   └── 张三丰.png
-├── people.list
-├── people.list.example
+├── people.list.sample
 ├── README.en.md
 ├── README.md
 └── sys_photo
@@ -60,7 +59,7 @@ $ tree
     ├── start.png
     └── zzxia.png
 
-2 directories, 21 files
+2 directories, 20 files
 ```
 
 
@@ -71,9 +70,11 @@ $ tree
 
 
 ## 4 使用说明
-1. 将抽奖人员名单写入文件【./people.list】
+
+1. 将抽奖人员名单写入文件【./people.list】（参考./people.list.sample）
 2. 如果需要更好体验，将人员照片保存到【./my_photo/姓名.png】。如果没有也可以运行【./generate_text_photo.py】产生基于姓名的图片(自动跳过已存在的图片)。当然也可以什么都不做，运行在纯文本方式
 3. 运行抽奖程序【./lucky_star.sh】，请看帮助：
+
 ```bash
 $ ./lucky_star.sh -h
 
@@ -85,7 +86,7 @@ $ ./lucky_star.sh -h
         ./lucky_star.sh  [-h|--help]
         ./lucky_star.sh  <-q|--question>  < <-p|--photo> | <-t|--text> >  <{抽几次}>  <{旋转几次}>  <{旋转速度}>      #--- 默认：抽6次，旋转6次，旋转速度1秒/次
     参数说明：
-        $0   : 代表脚本本身
+        \$0   : 代表脚本本身
         []   : 代表是必选项
         <>   : 代表是可选项
         |    : 代表左右选其一
