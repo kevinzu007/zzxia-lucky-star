@@ -18,8 +18,9 @@ CURREND_LIST='/tmp/people.list.tmp'
 cp -f  ${LIST}  ${CURREND_LIST}
 DATE_TIME="`date +%F_%T`"
 CURREND_LIST_TODAY="./people.list---${DATE_TIME}"   #--- 中奖人员
+
 # 设置钉钉api
-DINGDING_TOKEN='f75b4e5582c3720db3abd2b1dfc0eacc9d6134bb5254021e8849eba76bd3'     #--- 修改为自己的
+DINGDING_TOKEN='yyyyb4e5582c3720db3abd2b1dfc0eacc9d6134bbxxxxxx'     #--- 修改为自己的钉钉token
 export DINGDING_API="https://oapi.dingtalk.com/robot/send?access_token=${DINGDING_TOKEN}"
 
 
@@ -330,8 +331,13 @@ echo '########################################'
 cat ${CURREND_LIST_TODAY}
 echo '########################################'
 echo
-if [ "${SEND_MESSAGE}" = 'yes' -a "`echo ${DINGDING_TOKEN} | wc -c`" = '65' ]; then
-    ./dingding_by_markdown_file.py  --title='本期幸运之星龙虎榜：'  --message="`cat ${CURREND_LIST_TODAY}`"
+if [ "${SEND_MESSAGE}" = 'yes' ]; then
+    if [ "`echo ${DINGDING_TOKEN} | wc -c`" = '65' ]; then
+        ./dingding_by_markdown_file.py  --title='本期幸运之星龙虎榜：'  --message="`cat ${CURREND_LIST_TODAY}`"
+    else
+        echo -e "\n峰哥说：须先设置正确的钉钉token变量：【DINGDING_TOKEN】\n"
+        exit
+    fi
 fi
 
 
