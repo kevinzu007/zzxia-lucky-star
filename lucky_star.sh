@@ -18,6 +18,9 @@ CURREND_LIST='/tmp/people.list.tmp'
 cp -f  ${LIST}  ${CURREND_LIST}
 DATE_TIME="`date +%F_%T`"
 CURREND_LIST_TODAY="./people.list---${DATE_TIME}"   #--- 中奖人员
+# 设置钉钉api
+DINGDING_TOKEN='f75b4e5582c3720db3abd2b1dfc0eacc9d6134bb5254021e8849eba76bd3'     #--- 修改为自己的
+export DINGDING_API="https://oapi.dingtalk.com/robot/send?access_token=${DINGDING_TOKEN}"
 
 
 # 屏幕分辨率:
@@ -54,7 +57,7 @@ F_HELP()
             - convert可以计算图片的长宽，用以动态适配屏幕，非常棒
     用法：
         $0  [-h|--help]
-        $0  <-q|--question>  < <-p|--photo> | <-t|--text> >  <{抽几次}>  <{旋转几次}>  <{旋转速度}>      #--- 默认：抽6次，旋转6次，旋转速度1秒/次
+        $0  <-s|--send-message>  <-q|--question>  < <-p|--photo> | <-t|--text> >  <{抽几次}>  <{旋转几次}>  <{旋转速度}>      #--- 默认：抽6次，旋转6次，旋转速度1秒/次
     参数说明：
         \$0   : 代表脚本本身
         []   : 代表是必选项
@@ -67,6 +70,7 @@ F_HELP()
         -q|--question    开启问答环节，默认只抽奖
         -p|--photo       显示人员照片，请确保在【./my_photo/】下放了以人员【姓名.png】或【姓名.jpg】的照片
         -t|--text        显示文本，即不显示人员照片
+        -s|--send-message  发送dingding消息（需要设置``中的token）
     示例：
         $0  -h
         $0                 #--- 默认（不显示照片，抽6人，旋转6次，旋转速度1秒/次）
@@ -78,13 +82,14 @@ F_HELP()
         $0  -q  -p         #--- 开启问答，显示照片，其他默认
         $0  -q  -t         #--- 开启问答，不显示照片，其他默认
         $0  -q  -p  3 4 5  #--- 开启问答，显示照片，抽3人，旋转4次，旋转速度5秒/次
+        $0  -s  -q  -p  3 4 5  #--- 开启问答，显示照片，抽3人，旋转4次，旋转速度5秒/次
 
 Good Luck!
 "
 }
 
 
-TEMP=`getopt -o hqpt  -l help,question,photo,text -- "$@"`
+TEMP=`getopt -o hsqpt  -l help,send-message,question,photo,text -- "$@"`
 if [ $? != 0 ]; then
     echo "参数不合法！请查看帮助【$0 --help】"
     exit 1
@@ -100,6 +105,10 @@ do
             shift
             F_HELP
             exit
+            ;;
+        -s|--send-message)
+            shift
+            SEND_MESSAGE='yes'
             ;;
         -q|--question)
             shift
@@ -230,6 +239,7 @@ do
         while true; do
             let X_LINE=$RANDOM%${TOTAL_LINES}
             [ $X_LINE -ne 0 ] && break
+            #[ $X_LINE -ne 0 -a "`sed -n "${X_LINE}p" ${CURREND_LIST} | xxd -ps | cut -c4`" != 'c' ] && break
         done
         NAME=`sed -n "${X_LINE}p" ${CURREND_LIST}`
         #
@@ -320,6 +330,9 @@ echo '########################################'
 cat ${CURREND_LIST_TODAY}
 echo '########################################'
 echo
-#dingding_by_markdown_file.py  --title='本期幸运之星龙虎榜：'  --message="`cat ${CURREND_LIST_TODAY}`"
+if [ "${SEND_MESSAGE}" = 'yes' -a "`echo ${DINGDING_TOKEN} | wc -c`" = '65' ]; then
+    ./dingding_by_markdown_file.py  --title='本期幸运之星龙虎榜：'  --message="`cat ${CURREND_LIST_TODAY}`"
+fi
+
 
 
