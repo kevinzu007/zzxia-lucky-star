@@ -20,7 +20,7 @@
 1. 【Issue】她，告诉她有哪些小脾气，她会改的，手动小绵羊；
 1. 【Fork】她，为她增加新功能，修Bug，让她更加卡哇伊；
 1. 【打赏】她，为她买jk；
-<img src="https://img-blog.csdnimg.cn/20210429155627295.jpg?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3poZl9zeQ==,size_16,color_FFFFFF,t_70#pic_center" alt="打赏" style="zoom:20%;" />
+<img src="https://gitee.com/zhf_sy/pic-bed/raw/master/dao.png" alt="打赏" style="zoom:40%;" />
 
 
 ## 2 软件架构
