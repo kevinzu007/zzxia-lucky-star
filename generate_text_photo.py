@@ -26,11 +26,14 @@ def write(f_name,flag):
         image = Image.new("RGB",(PIC_W,PIC_H),b_color)
         draw_table = ImageDraw.Draw(im=image)
         font = ImageFont.truetype("./SimHei.ttf",90)
-        _w,f_font_h=font.getsize(f_name)
+        _left, _top, _right, _bottom = font.getbbox(f_name)
+        _w = _right - _left
+        f_font_h = _bottom - _top
         point_h = (PIC_H - len(f_name)*f_font_h) / 2
         j = 0
         for i in f_name:
-            f_font_w,n=font.getsize(i)
+            _l, _t, _r, _b = font.getbbox(i)
+            f_font_w = _r - _l
             draw_table.text(xy=((PIC_W - f_font_w) / 2, point_h + f_font_h * j),text=i, fill=f_color, font=font)
             j += 1
         #image.show()  # 直接显示图片
@@ -45,7 +48,9 @@ def write(f_name,flag):
         image = Image.new("RGB",(PIC_W, PIC_H),b_color)
         draw_table = ImageDraw.Draw(im=image)
         font = ImageFont.truetype("./SimHei.ttf",240)
-        w,h=font.getsize(f_name)
+        _l, _t, _r, _b = font.getbbox(f_name)
+        w = _r - _l
+        h = _b - _t
         draw_table.text(xy=((PIC_W - w)/2,(PIC_H - h) / 2),text=f_name, fill=f_color, font=font)
         #image.show()  # 直接显示图片
         if os.path.exists('./my_photo/' + f_name + "-2.png"):

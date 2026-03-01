@@ -30,7 +30,7 @@
 
 ## 2 软件架构
 Linux Shell
-Python3
+Python3 (需要依赖 `Pillow` 库：`pip3 install Pillow`)
 
 ### 2.1 设计理念
 1. 随机数取余数

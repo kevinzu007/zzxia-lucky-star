@@ -7,20 +7,21 @@
 
 
 # sh
-SH_NAME=${0##*/}
-SH_PATH=$( cd "$( dirname "$0" )" && pwd )
-cd ${SH_PATH}
+# SH_NAME=${0##*/}  (unused)
+SH_PATH=$( cd "$( dirname "$0" )" || exit 1; pwd )
+cd "${SH_PATH}" || exit 1
 
 
 # env
 LIST='./people.list'                   #--- 人员名单
-CURREND_LIST='/tmp/people.list.tmp'
-cp -f  ${LIST}  ${CURREND_LIST}
-DATE_TIME="`date +%F_%T`"
+CURREND_LIST=$(mktemp /tmp/lucky_star_people.XXXXXX)
+trap 'rm -f "${CURREND_LIST}"' EXIT
+cp -f  "${LIST}"  "${CURREND_LIST}"
+DATE_TIME="$(date +%F_%T)"
 CURREND_LIST_TODAY="./people.list---${DATE_TIME}"   #--- 中奖人员
 
-# 设置钉钉api
-DINGDING_TOKEN='yyyyb4e5582c3720db3abd2b1dfc0eacc9d6134bbxxxxxx'     #--- 修改为自己的钉钉token
+# 设置钉钉api (通过环境变量读取，不在此明文硬编码)
+DINGDING_TOKEN="${DINGDING_TOKEN:-}"     #--- 须自行通过 export DINGDING_TOKEN="..." 注入
 export DINGDING_API="https://oapi.dingtalk.com/robot/send?access_token=${DINGDING_TOKEN}"
 
 
@@ -36,9 +37,9 @@ export DINGDING_API="https://oapi.dingtalk.com/robot/send?access_token=${DINGDIN
 
 # SCREEN大小
 #S_MAX_W=${COLUMNS}
-S_MAX_W=`stty size | awk '{print $2}'`
+S_MAX_W=$(stty size | awk '{print $2}')
 #let S_MAX_H=${LINES}*2
-let S_MAX_H=`stty size | awk '{print $1}'`*2
+(( S_MAX_H = $(stty size | awk '{print $1}') * 2 ))
 
 
 
@@ -90,8 +91,8 @@ Good Luck!
 }
 
 
-TEMP=`getopt -o hsqpt  -l help,send-message,question,photo,text -- "$@"`
-if [ $? != 0 ]; then
+TEMP=$(getopt -o hsqpt  -l help,send-message,question,photo,text -- "$@")
+if ! TEMP=$(getopt -o hsqpt  -l help,send-message,question,photo,text -- "$@"); then
     echo "参数不合法！请查看帮助【$0 --help】"
     exit 1
 fi
@@ -144,13 +145,13 @@ SLEEP_S=${3:-1}                    #--- 旋转速度（间隔几秒）
 
 
 # 有image2ascii吗？
-if [ "`which image2ascii > /dev/null 2>&1; echo $?`" -ne 0 ]; then
+if [ "$(which image2ascii > /dev/null 2>&1; echo $?)" -ne 0 ]; then
     SHOW_PHOTO='no'
     echo -e "峰哥说：没有找到程序【image2ascii】，你可以从这里【https://github.com/qeesung/image2ascii】安装，已经切换为【text】的方式运行"
 fi
 
 # 有convert吗？
-if [ "`which convert > /dev/null 2>&1; echo $?`" -ne 0 ]; then
+if [ "$(which convert > /dev/null 2>&1; echo $?)" -ne 0 ]; then
     SHOW_PHOTO='no'
     echo -e "峰哥说：没有找到程序【convert】，你可以从这里【https://github.com/ImageMagick/ImageMagick】安装，已经切换为【text】的方式运行"
     # convert 安装方法示例（centos7，一般系统已经自带了）：
@@ -173,21 +174,21 @@ F_RATE()
     F_PIC=$1
     F_PIC_RATE=$2
     #
-    F_PIC_W=`convert ${F_PIC}  -print "%w\n" 2>/dev/null`
-    F_PIC_H=`convert ${F_PIC}  -print "%h\n" 2>/dev/null`
+    F_PIC_W=$(convert "${F_PIC}"  -print "%w\n" 2>/dev/null)
+    F_PIC_H=$(convert "${F_PIC}"  -print "%h\n" 2>/dev/null)
     # 如果值为空，则预设值（原因可能convert没有图片解码引擎）
     if [ -z "${F_PIC_W}" ]; then
         echo -e "\n峰哥说：【convert】解码图片【${F_PIC}】失败，已经将图片设置为【1600x800】了，但这并不是一个好主意，建议你使用【text】方式\n"
-        read -p "按任意键继续" ACK
+        read -r -p "按任意键继续" ACK
         F_PIC_W=1600
         F_PIC_H=800
     fi
     # 取最小的（填满屏幕的倍率）
-    F_S_RATE_W=`echo "scale=2; ${S_MAX_W} / ${F_PIC_W}" | bc -l`
-    F_S_RATE_H=`echo "scale=2; ${S_MAX_H} / ${F_PIC_H}" | bc -l`
-    F_S_RATE=$( echo ${F_S_RATE_W} ${F_S_RATE_H} | awk '{if($1 < $2) print $1; else print $2}' )
-    F_S_PIC_RATE=`echo "scale=2; ${F_S_RATE} * ${F_PIC_RATE}" | bc -l`
-    echo ${F_S_PIC_RATE}
+    F_S_RATE_W=$(echo "scale=2; ${S_MAX_W} / ${F_PIC_W}" | bc -l)
+    F_S_RATE_H=$(echo "scale=2; ${S_MAX_H} / ${F_PIC_H}" | bc -l)
+    F_S_RATE=$( echo "${F_S_RATE_W}" "${F_S_RATE_H}" | awk '{if($1 < $2) print $1; else print $2}' )
+    F_S_PIC_RATE=$(echo "scale=2; ${F_S_RATE} * ${F_PIC_RATE}" | bc -l)
+    echo "${F_S_PIC_RATE}"
     return 0
 }
 
@@ -197,7 +198,7 @@ clear
 if [ "${SHOW_PHOTO}" = 'yes' ]; then
     #
     image2ascii  -f ./sys_photo/start.png
-    read -p "Ready? Go"
+    read -r -p "Ready? Go"
     # 倒数
     for ((n=6;n>=0;n--))
     do
@@ -217,44 +218,44 @@ else
     echo '##########################################'
     echo '##########################################'
     echo '##########################################'
-    read -p "Ready? Go"
+    read -r -p "Ready? Go"
 fi
 
 
 
-echo "${DATE_TIME}" > ${CURREND_LIST_TODAY}
-for i in $(seq 1 ${PEOPLE_NUM})
+echo "${DATE_TIME}" > "${CURREND_LIST_TODAY}"
+for i in $(seq 1 "${PEOPLE_NUM}")
 do
     #
-    TOTAL_LINES=$( wc -l < ${CURREND_LIST} )
-    if [ ${TOTAL_LINES} -eq 0 ]; then
+    TOTAL_LINES=$( wc -l < "${CURREND_LIST}" )
+    if [ "${TOTAL_LINES}" -eq 0 ]; then
         echo "人员名单【${CURREND_LIST}】是空的"
         exit 1
     fi
-    let TOTAL_LINES=${TOTAL_LINES}+1
+    (( TOTAL_LINES++ ))
     #
     j=1
     while true
     do
         # 选人
         while true; do
-            let X_LINE=$RANDOM%${TOTAL_LINES}
-            [ $X_LINE -ne 0 ] && break
-            #[ $X_LINE -ne 0 -a "`sed -n "${X_LINE}p" ${CURREND_LIST} | xxd -ps | cut -c4`" != 'c' ] && break
+            (( X_LINE = RANDOM % TOTAL_LINES ))
+            [ "$X_LINE" -ne 0 ] && break
+            #[ $X_LINE -ne 0 -a "$(sed -n "${X_LINE}p" "${CURREND_LIST}" | xxd -ps | cut -c4)" != 'c' ] && break
         done
-        NAME=`sed -n "${X_LINE}p" ${CURREND_LIST}`
+        NAME=$(sed -n "${X_LINE}p" "${CURREND_LIST}")
         #
         # 随机次数
-        if [ $j -eq ${RANDOM_TIMES} ]; then
+        if [ "$j" -eq "${RANDOM_TIMES}" ]; then
             break
         else
             #
             clear
             if [ "${SHOW_PHOTO}" = 'yes' ]; then
-                if [ -f ./my_photo/${NAME}.png ]; then
-                    image2ascii  -f ./my_photo/${NAME}.png  -r `F_RATE  ./my_photo/${NAME}.png  1`
-                elif [ -f ./my_photo/${NAME}.jpg ]; then
-                    image2ascii  -f ./my_photo/${NAME}.jpg  -r `F_RATE  ./my_photo/${NAME}.jpg  1`
+                if [ -f "./my_photo/${NAME}.png" ]; then
+                    image2ascii  -f "./my_photo/${NAME}.png"  -r "$(F_RATE  "./my_photo/${NAME}.png"  1)"
+                elif [ -f "./my_photo/${NAME}.jpg" ]; then
+                    image2ascii  -f "./my_photo/${NAME}.jpg"  -r "$(F_RATE  "./my_photo/${NAME}.jpg"  1)"
                 else
                     image2ascii  -f ./sys_photo/404.png
                 fi
@@ -272,31 +273,31 @@ do
                 echo '##########################################'
             fi
             #
-            sleep ${SLEEP_S}
+            sleep "${SLEEP_S}"
         fi
-        let j=$j+1
+        (( j++ ))
     done
     # 确认人选
-    sed -i "${X_LINE}d" ${CURREND_LIST}
+    sed -i "${X_LINE}d" "${CURREND_LIST}"
     # 显示
     clear
     if [ "${SHOW_PHOTO}" = 'yes' ]; then
-        if [ -f ./my_photo/${NAME}.png ]; then
-            image2ascii  -f ./my_photo/${NAME}.png  -r `F_RATE  ./my_photo/${NAME}.png  0.9`
-        elif [ -f ./my_photo/${NAME}.jpg ]; then
-            image2ascii  -f ./my_photo/${NAME}.jpg  -r `F_RATE  ./my_photo/${NAME}.png  0.9`
+        if [ -f "./my_photo/${NAME}.png" ]; then
+            image2ascii  -f "./my_photo/${NAME}.png"  -r "$(F_RATE  "./my_photo/${NAME}.png"  0.9)"
+        elif [ -f "./my_photo/${NAME}.jpg" ]; then
+            image2ascii  -f "./my_photo/${NAME}.jpg"  -r "$(F_RATE  "./my_photo/${NAME}.jpg"  0.9)"
         else
-            image2ascii  -f ./sys_photo/404.png  -r `F_RATE  ./sys_photo/404.png  0.9`
+            image2ascii  -f ./sys_photo/404.png  -r "$(F_RATE  ./sys_photo/404.png  0.9)"
         fi
-        read -p "No.$i: 你猜ta是谁？" WHO
+        read -r -p "No.$i: 你猜ta是谁？" _WHO
         # 再显示名字
-        if [ -f ./my_photo/${NAME}-2.png ]; then
+        if [ -f "./my_photo/${NAME}-2.png" ]; then
             # 姓名图片
             clear
-            #image2ascii -f ./my_photo/${NAME}-2.png -r `F_RATE  ./my_photo/${NAME}-2.png  0.9`
-            image2ascii -f ./my_photo/${NAME}-2.png -r `F_RATE  ./my_photo/${NAME}-2.png  1`
+            #image2ascii -f "./my_photo/${NAME}-2.png" -r "$(F_RATE  "./my_photo/${NAME}-2.png"  0.9)"
+            image2ascii -f "./my_photo/${NAME}-2.png" -r "$(F_RATE  "./my_photo/${NAME}-2.png"  1)"
         else
-            read -p "【${NAME}】"
+            read -r -p "【${NAME}】"
         fi
     else
         echo '##########################################'
@@ -310,30 +311,30 @@ do
         echo '##########################################'
         echo '##########################################'
         echo '##########################################'
-        read -p "【${NAME}】"
+        read -r -p "【${NAME}】"
     fi
     # 区别从这里开始
     if [ "${QA}" = 'yes' ]; then
-        read -p "有请幸运之星【${NAME}】回答问题"
-        read -p '回答正确吗?(y|n)：' ACK
-        echo "- No.$i:   ${NAME}  --  ${ACK}" >> ${CURREND_LIST_TODAY}
+        read -r -p "有请幸运之星【${NAME}】回答问题"
+        read -r -p '回答正确吗?(y|n)：' ACK
+        echo "- No.$i:   ${NAME}  --  ${ACK}" >> "${CURREND_LIST_TODAY}"
     else
-        echo "- No.$i:   ${NAME}" >> ${CURREND_LIST_TODAY}
+        echo "- No.$i:   ${NAME}" >> "${CURREND_LIST_TODAY}"
     fi
     #
-    read -p "按任意键继续"
+    read -r -p "按任意键继续"
 done
 
 # output
 clear
 echo -e "\n本期幸运之星龙虎榜："
 echo '########################################'
-cat ${CURREND_LIST_TODAY}
+cat "${CURREND_LIST_TODAY}"
 echo '########################################'
 echo
 if [ "${SEND_MESSAGE}" = 'yes' ]; then
-    if [ "`echo ${DINGDING_TOKEN} | wc -c`" = '65' ]; then
-        ./dingding_by_markdown_file.py  --title='本期幸运之星龙虎榜：'  --message="`cat ${CURREND_LIST_TODAY}`"
+    if [ "${#DINGDING_TOKEN}" = '65' ]; then
+        ./dingding_send_markdown.sh  --title='本期幸运之星龙虎榜：'  --message="$(cat "${CURREND_LIST_TODAY}")"
     else
         echo -e "\n峰哥说：须先设置正确的钉钉token变量：【DINGDING_TOKEN】\n"
         exit
