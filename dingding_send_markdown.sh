@@ -15,8 +15,8 @@
 dingding_api_url=${DINGDING_WEBHOOK_API}
 
 # 本地env
-HOSTNAME=$(hostname)    #-- 获取主机名
-DATETIME=$(date "+%Y-%m-%d %H:%M:%S %z")    #-- 小时时间标记
+_hostname=$(hostname)    #-- 获取主机名
+_datetime=$(date "+%Y-%m-%d %H:%M:%S %z")    #-- 小时时间标记
 send_title=""
 send_message=""
 
@@ -54,12 +54,12 @@ F_HELP()
         -t|--title       消息标题
         -m|--message     消息内容
     示例:
-        $0  -t 'sssss'       -m \"\`cat xxx.md\`\"
-        $0  --title 'sssss'  --message \"\`cat xxx.md\`\"                                               #-- 从文件获取
-        $0  --title 'sssss'  --message \"### 用户：\${USER}\"                                            #-- 简单输出
-        $0  --title 'sssss'  --message \"\$( echo -e \"### 用户：\${USER} \n### 时间：\`date\` \n\n\" )\"     #-- 从命令获取
-        $0  -w \"https://oapi.dingtalk.com/robot/send?access_token=你自己的钉钉机器人token\"  -t 'sssss'  -m \"### 用户：\${USER}\"
-        export DINGDING_WEBHOOK_API=\"https://oapi.dingtalk.com/robot/send?access_token=你自己的钉钉机器人token\"; $0 -t 'sssss'  -m \"### 用户：\${USER}\"
+        $0  -t 'sssss'       -m \"\$(cat xxx.md)\"
+        $0  --title 'sssss'  --message \"\$(cat xxx.md)\"                                                   #-- 从文件获取
+        $0  --title 'sssss'  --message \"### 用户：\${USER}\"                                                #-- 简单输出
+        $0  --title 'sssss'  --message \"\$( echo -e \"### 用户：\${USER} \n### 时间：\$(date) \n\n\" )\"     #-- 从命令获取
+        $0  -w 'https://oapi.dingtalk.com/robot/send?access_token=你的token'  -t 'sssss'  -m \"### 用户：\${USER}\"
+        export DINGDING_WEBHOOK_API='https://oapi.dingtalk.com/robot/send?access_token=你的token'; $0 -t 'sssss'  -m \"### 用户：\${USER}\"
     "
 }
 
@@ -130,7 +130,7 @@ fi
 
 send_header="Content-Type: application/json; charset=utf-8"
 
-send_message="### ${send_title} \n---\n${send_message} \n\n---\n\n*发自: ${HOSTNAME}*\n\n*时间: ${DATETIME}*\n\n"
+send_message="### ${send_title} \n---\n${send_message} \n\n---\n\n*发自: ${_hostname}*\n\n*时间: ${_datetime}*\n\n"
 
 # 使用jq安全构建JSON，避免特殊字符破坏JSON结构
 if command -v jq > /dev/null 2>&1; then
