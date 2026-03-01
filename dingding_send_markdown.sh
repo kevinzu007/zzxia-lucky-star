@@ -6,20 +6,13 @@
 #############################################################################
 
 # sh
-SH_NAME=${0##*/}
-SH_PATH=$( cd "$( dirname "$0" )" && pwd )
+#SH_NAME=${0##*/}
+#SH_PATH=$( cd "$( dirname "$0" )" && pwd )
 #cd "${SH_PATH}"
 
-# 引入/etc/profile.d/zzxia-op-super-invincible-lollipop.run-env.sh
-# 检测 MY_PRIVATE_ENVS_DIR 是否存在，不存在则主动加载环境变量（非终端界面不会自动引入）
-if [ -z "${RUN_ENV}" ]; then
-    if [ -f /etc/profile.d/zzxia-op-super-invincible-lollipop.run-env.sh ]; then
-        . /etc/profile.d/zzxia-op-super-invincible-lollipop.run-env.sh
-    fi
-fi
-# 引入使用：
+# 引入env
 #DINGDING_WEBHOOK_API=
-dingding_api_url=${DINGDING_WEBHOOK_API_NEW:-"${DINGDING_WEBHOOK_API}"}
+dingding_api_url=${DINGDING_WEBHOOK_API}
 
 # 本地env
 HOSTNAME=$(hostname)    #-- 获取主机名
@@ -33,7 +26,11 @@ F_HELP()
 {
     echo "
     用途：将markdown格式的文本通过钉钉机器人发送出去
-    依赖：/etc/profile.d/zzxia-op-super-invincible-lollipop.run-env.sh
+    特征码：
+        ${GAN_WHAT_FUCK:-'未命名'}
+    权限要求：
+        ${NEED_PRIVILEGES:-'未指定'}
+    依赖：
     注意：推荐使用新的统一通知脚本 send_markdown_msg.sh，支持多平台（钉钉、企业微信、飞书）
           本脚本将继续维护以保持向后兼容性
     用法:
@@ -53,15 +50,16 @@ F_HELP()
     参数说明：
         #
         -h|--help        此帮助
-        -w|--webhook     钉钉webhook地址，默认从从环境变量中继承（DINGDING_WEBHOOK_API、DINGDING_WEBHOOK_API_{1,2,3}，数字越大优先级越高）
+        -w|--webhook     钉钉webhook地址，如果未设置，则从从环境变量中继承（\${DINGDING_WEBHOOK_API}）
         -t|--title       消息标题
         -m|--message     消息内容
     示例:
         $0  -t 'sssss'       -m \"\`cat xxx.md\`\"
         $0  --title 'sssss'  --message \"\`cat xxx.md\`\"                                               #-- 从文件获取
         $0  --title 'sssss'  --message \"### 用户：\${USER}\"                                            #-- 简单输出
-        $0  --title 'sssss'  --message \"\$( echo -e "### 用户：\${USER} \n### 时间：\`date\` \n\n" )\"     #-- 从命令获取
+        $0  --title 'sssss'  --message \"\$( echo -e \"### 用户：\${USER} \n### 时间：\`date\` \n\n\" )\"     #-- 从命令获取
         $0  -w \"https://oapi.dingtalk.com/robot/send?access_token=你自己的钉钉机器人token\"  -t 'sssss'  -m \"### 用户：\${USER}\"
+        export DINGDING_WEBHOOK_API=\"https://oapi.dingtalk.com/robot/send?access_token=你自己的钉钉机器人token\"; $0 -t 'sssss'  -m \"### 用户：\${USER}\"
     "
 }
 
@@ -104,7 +102,7 @@ while [[ $# -gt 0 ]]; do
             send_message="$2"
             #shift 2     #-- 如果不够两个将会失败，造成死循环
             shift
-            shift
+            [[ $# -gt 0 ]] && shift
             ;;
 #        --)
 #            shift
@@ -134,16 +132,18 @@ send_header="Content-Type: application/json; charset=utf-8"
 
 send_message="### ${send_title} \n---\n${send_message} \n\n---\n\n*发自: ${HOSTNAME}*\n\n*时间: ${DATETIME}*\n\n"
 
-send_data=$(cat <<EOF
-{
-  "msgtype": "markdown",
-  "markdown": {
-    "title": "${send_title}",
-    "text": "${send_message}"
-  }
-}
-EOF
-)
+# 使用jq安全构建JSON，避免特殊字符破坏JSON结构
+if command -v jq > /dev/null 2>&1; then
+    send_data=$(jq -n \
+        --arg title "${send_title}" \
+        --arg text "${send_message}" \
+        '{msgtype: "markdown", markdown: {title: $title, text: $text}}')
+else
+    # fallback: 简单转义双引号和反斜杠
+    _escaped_title=$(echo "${send_title}" | sed 's/\\/\\\\/g; s/"/\\"/g')
+    _escaped_message=$(echo "${send_message}" | sed 's/\\/\\\\/g; s/"/\\"/g')
+    send_data="{\"msgtype\": \"markdown\", \"markdown\": {\"title\": \"${_escaped_title}\", \"text\": \"${_escaped_message}\"}}"
+fi
 
 curl -s -X POST -H "${send_header}" -d "${send_data}" "${dingding_api_url}" || { echo "Error sending message" >&2 ; exit 1; }
 

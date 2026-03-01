@@ -7,7 +7,7 @@
 
 
 # sh
-# SH_NAME=${0##*/}  (unused)
+#SH_NAME=${0##*/}
 SH_PATH=$( cd "$( dirname "$0" )" || exit 1; pwd )
 cd "${SH_PATH}" || exit 1
 
@@ -20,9 +20,9 @@ cp -f  "${LIST}"  "${CURREND_LIST}"
 DATE_TIME="$(date +%F_%T)"
 CURREND_LIST_TODAY="./people.list---${DATE_TIME}"   #--- 中奖人员
 
-# 设置钉钉api (通过环境变量读取，不在此明文硬编码)
-DINGDING_TOKEN="${DINGDING_TOKEN:-}"     #--- 须自行通过 export DINGDING_TOKEN="..." 注入
-export DINGDING_API="https://oapi.dingtalk.com/robot/send?access_token=${DINGDING_TOKEN}"
+# 引入钉钉api (通过环境变量读取，不在此明文硬编码)
+#DINGDING_WEBHOOK_API=
+# 须自行通过 export DINGDING_WEBHOOK_API="https://oapi.dingtalk.com/robot/send?access_token=你的token" 注入
 
 
 # 屏幕分辨率:
@@ -52,6 +52,7 @@ F_HELP()
     权限要求：
         ${NEED_PRIVILEGES:-'未指定'}
     依赖：
+        export DINGDING_WEBHOOK_API="https://oapi.dingtalk.com/robot/send?access_token=你的token" 注入
         photo方式需要：image2ascii - 图片转文本（https://github.com/qeesung/image2ascii）
                        convert     - 计算图片长宽（https://github.com/ImageMagick/ImageMagick）
     注意：
@@ -349,10 +350,10 @@ cat "${CURREND_LIST_TODAY}"
 echo '########################################'
 echo
 if [ "${SEND_MESSAGE}" = 'yes' ]; then
-    if [ "${#DINGDING_TOKEN}" = '65' ]; then
-        ./dingding_send_markdown.sh  --title='本期幸运之星龙虎榜：'  --message="$(cat "${CURREND_LIST_TODAY}")"
+    if [ -n "${DINGDING_WEBHOOK_API:-}" ]; then
+        ./dingding_send_markdown.sh  --webhook "${DINGDING_WEBHOOK_API}"  --title='本期幸运之星龙虎榜：'  --message="$(cat "${CURREND_LIST_TODAY}")"
     else
-        echo -e "\n峰哥说：须先设置正确的钉钉token变量：【DINGDING_TOKEN】\n"
+        echo -e "\n峰哥说：须先设置正确的钉钉Webhook变量：【DINGDING_WEBHOOK_API】\n"
         exit
     fi
 fi
