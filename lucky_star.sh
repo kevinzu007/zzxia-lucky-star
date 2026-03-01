@@ -47,6 +47,10 @@ F_HELP()
 {
     echo "
     用途：抽奖、问答程序
+    特征码：
+        ${GAN_WHAT_FUCK:-'未命名'}
+    权限要求：
+        ${NEED_PRIVILEGES:-'未指定'}
     依赖：
         photo方式需要：image2ascii - 图片转文本（https://github.com/qeesung/image2ascii）
                        convert     - 计算图片长宽（https://github.com/ImageMagick/ImageMagick）
@@ -58,8 +62,19 @@ F_HELP()
             - 如果没装image2ascii，将会以纯字符的形式显示
             - convert可以计算图片的长宽，用以动态适配屏幕，非常棒
     用法：
-        $0  [-h|--help]
-        $0  <-s|--send-message>  <-q|--question>  < <-p|--photo> | <-t|--text> >  <{抽几次}>  <{旋转几次}>  <{旋转速度}>      #--- 默认：抽6次，旋转6次，旋转速度1秒/次
+        $0  -h|--help
+        $0  [-s|--send-message] [-q|--question] [-p|--photo|-t|--text] [{抽几次} {旋转几次} {旋转速度}]
+    参数规范：
+        无包围符号 ：-a                : 必选【选项】
+                   ：val               : 必选【参数值】
+                   ：val1 val2 -a -b   : 必选【选项或参数值】，且不分先后顺序
+        []         ：[-a]              : 可选【选项】
+                   ：[val]             : 可选【参数值】
+        <>         ：<val>             : 需替换的具体值（用户必须提供）
+        %%         ：%val%             : 通配符（包含匹配，如%error%匹配error_code）
+        |          ：val1|val2|<valn>  : 多选一
+        {}         ：{-a <val>}        : 必须成组出现【选项+参数值】，且保持顺序
+                   ：{val1 val2}       : 必须成组的【参数值组合】，且必须按顺序提供
     参数说明：
         \$0   : 代表脚本本身
         []   : 代表是必选项
@@ -72,7 +87,8 @@ F_HELP()
         -q|--question    开启问答环节，默认只抽奖
         -p|--photo       显示人员照片，请确保在【./my_photo/】下放了以人员【姓名.png】或【姓名.jpg】的照片
         -t|--text        显示文本，即不显示人员照片
-        -s|--send-message  发送dingding消息（需要设置``中的token）
+        -s|--send-message  发送dingding消息（需要设置\`\`中的token）
+        {抽几次} {旋转几次} {旋转速度}    默认：抽6次，旋转6次，旋转速度1秒/次
     示例：
         $0  -h
         $0                 #--- 默认（不显示照片，抽6人，旋转6次，旋转速度1秒/次）
