@@ -14,11 +14,12 @@ cd "${SH_PATH}" || exit 1
 
 # env
 LIST='./people.list'                   #--- 人员名单
-CURREND_LIST=$(mktemp /tmp/lucky_star_people.XXXXXX)
-trap 'rm -f "${CURREND_LIST}"' EXIT
-cp -f  "${LIST}"  "${CURREND_LIST}"
+CURRENT_LIST=$(mktemp /tmp/lucky_star_people.XXXXXX)
 DATE_TIME="$(date +%F_%T)"
-CURREND_LIST_TODAY="./people.list---${DATE_TIME}"   #--- 中奖人员
+CURRENT_LIST_TODAY="./people.list---${DATE_TIME}"   #--- 中奖人员
+trap 'rm -f "${CURRENT_LIST}"' EXIT
+trap 'rm -f "${CURRENT_LIST}" "${CURRENT_LIST_TODAY}"; exit 1' INT TERM HUP
+cp -f  "${LIST}"  "${CURRENT_LIST}"
 
 # 引入钉钉api (通过环境变量读取，不在此明文硬编码)
 #DINGDING_WEBHOOK_API=
@@ -77,13 +78,6 @@ F_HELP()
         {}         ：{-a <val>}        : 必须成组出现【选项+参数值】，且保持顺序
                    ：{val1 val2}       : 必须成组的【参数值组合】，且必须按顺序提供
     参数说明：
-        \$0   : 代表脚本本身
-        []   : 代表是必选项
-        <>   : 代表是可选项
-        |    : 代表左右选其一
-        {}   : 代表参数值，请替换为具体参数值
-        %    : 代表通配符，非精确值，可以被包含
-        #
         -h|--help        此帮助
         -q|--question    开启问答环节，默认只抽奖
         -p|--photo       显示人员照片，请确保在【./my_photo/】下放了以人员【姓名.png】或【姓名.jpg】的照片
@@ -108,7 +102,6 @@ Good Luck!
 }
 
 
-TEMP=$(getopt -o hsqpt  -l help,send-message,question,photo,text -- "$@")
 if ! TEMP=$(getopt -o hsqpt  -l help,send-message,question,photo,text -- "$@"); then
     echo "参数不合法！请查看帮助【$0 --help】"
     exit 1
@@ -162,13 +155,13 @@ SLEEP_S=${3:-1}                    #--- 旋转速度（间隔几秒）
 
 
 # 有image2ascii吗？
-if [ "$(which image2ascii > /dev/null 2>&1; echo $?)" -ne 0 ]; then
+if ! command -v image2ascii > /dev/null 2>&1; then
     SHOW_PHOTO='no'
     echo -e "峰哥说：没有找到程序【image2ascii】，你可以从这里【https://github.com/qeesung/image2ascii】安装，已经切换为【text】的方式运行"
 fi
 
 # 有convert吗？
-if [ "$(which convert > /dev/null 2>&1; echo $?)" -ne 0 ]; then
+if ! command -v convert > /dev/null 2>&1; then
     SHOW_PHOTO='no'
     echo -e "峰哥说：没有找到程序【convert】，你可以从这里【https://github.com/ImageMagick/ImageMagick】安装，已经切换为【text】的方式运行"
     # convert 安装方法示例（centos7，一般系统已经自带了）：
@@ -220,7 +213,7 @@ if [ "${SHOW_PHOTO}" = 'yes' ]; then
     for ((n=6;n>=0;n--))
     do
         clear
-        image2ascii -f ./sys_photo/${n}.png
+        image2ascii -f "./sys_photo/${n}.png"
         sleep 1
     done
 else
@@ -240,13 +233,13 @@ fi
 
 
 
-echo "${DATE_TIME}" > "${CURREND_LIST_TODAY}"
+echo "${DATE_TIME}" > "${CURRENT_LIST_TODAY}"
 for i in $(seq 1 "${PEOPLE_NUM}")
 do
     #
-    TOTAL_LINES=$( wc -l < "${CURREND_LIST}" )
+    TOTAL_LINES=$( wc -l < "${CURRENT_LIST}" )
     if [ "${TOTAL_LINES}" -eq 0 ]; then
-        echo "人员名单【${CURREND_LIST}】是空的"
+        echo "人员名单【${CURRENT_LIST}】是空的"
         exit 1
     fi
     (( TOTAL_LINES++ ))
@@ -260,7 +253,7 @@ do
             [ "$X_LINE" -ne 0 ] && break
             #[ $X_LINE -ne 0 -a "$(sed -n "${X_LINE}p" "${CURREND_LIST}" | xxd -ps | cut -c4)" != 'c' ] && break
         done
-        NAME=$(sed -n "${X_LINE}p" "${CURREND_LIST}")
+        NAME=$(sed -n "${X_LINE}p" "${CURRENT_LIST}")
         #
         # 随机次数
         if [ "$j" -eq "${RANDOM_TIMES}" ]; then
@@ -295,7 +288,7 @@ do
         (( j++ ))
     done
     # 确认人选
-    sed -i "${X_LINE}d" "${CURREND_LIST}"
+    sed -i "${X_LINE}d" "${CURRENT_LIST}"
     # 显示
     clear
     if [ "${SHOW_PHOTO}" = 'yes' ]; then
@@ -334,9 +327,9 @@ do
     if [ "${QA}" = 'yes' ]; then
         read -r -p "有请幸运之星【${NAME}】回答问题"
         read -r -p '回答正确吗?(y|n)：' ACK
-        echo "- No.$i:   ${NAME}  --  ${ACK}" >> "${CURREND_LIST_TODAY}"
+        echo "- No.$i:   ${NAME}  --  ${ACK}" >> "${CURRENT_LIST_TODAY}"
     else
-        echo "- No.$i:   ${NAME}" >> "${CURREND_LIST_TODAY}"
+        echo "- No.$i:   ${NAME}" >> "${CURRENT_LIST_TODAY}"
     fi
     #
     read -r -p "按任意键继续"
@@ -346,12 +339,12 @@ done
 clear
 echo -e "\n本期幸运之星龙虎榜："
 echo '########################################'
-cat "${CURREND_LIST_TODAY}"
+cat "${CURRENT_LIST_TODAY}"
 echo '########################################'
 echo
 if [ "${SEND_MESSAGE}" = 'yes' ]; then
     if [ -n "${DINGDING_WEBHOOK_API:-}" ]; then
-        ./dingding_send_markdown.sh  --webhook "${DINGDING_WEBHOOK_API}"  --title='本期幸运之星龙虎榜：'  --message="$(cat "${CURREND_LIST_TODAY}")"
+        ./dingding_send_markdown.sh  --webhook "${DINGDING_WEBHOOK_API}"  --title='本期幸运之星龙虎榜：'  --message="$(cat "${CURRENT_LIST_TODAY}")"
     else
         echo -e "\n峰哥说：须先设置正确的钉钉Webhook变量：【DINGDING_WEBHOOK_API】\n"
         exit

@@ -1,9 +1,9 @@
 #!/usr/bin/python3
 # encoding: utf-8
 
-from typing import Text
+
 from PIL import Image, ImageDraw, ImageFont
-import random ,os
+import random, os
 
 def randomcolor():
     colorArr = ['1','2','3','4','5','6','7','8','9','A','B','C','D','E','F']
@@ -12,7 +12,7 @@ def randomcolor():
         color += colorArr[random.randint(0,14)]
     anti_color = ""
     for i in color:
-        anti_color_i = str(hex(16-int(i,16))).strip("0x")
+        anti_color_i = format(15 - int(i, 16), 'X')
         anti_color += anti_color_i
     return "#" + color, "#" + anti_color
 
@@ -61,16 +61,12 @@ def write(f_name,flag):
 
 
 if __name__ == "__main__":
-    f = open("./people.list","r",encoding="utf-8")
-    namelist = []
-    a = f.readlines()
-    f.close()
-    for n in a:
-        namelist.append(n.strip("\n"))
-    image_file_flag = ["1","2"]
+    with open("./people.list", "r", encoding="utf-8") as f:
+        namelist = [line.strip("\n") for line in f.readlines()]
+    image_file_flag = ["1", "2"]
     for name in namelist:
         for x in image_file_flag:
-            write(name,x)
+            write(name, x)
 
 
 

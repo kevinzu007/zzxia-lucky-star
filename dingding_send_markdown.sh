@@ -99,10 +99,12 @@ while [[ $# -gt 0 ]]; do
             shift 2
             ;;
         -m|--message)
+            if [[ -z "$2" || "$2" == -* ]]; then
+                echo -e "\n猪猪侠警告：-m|--message 参数缺少值，请查看帮助【$0 --help】\n" >&2
+                exit 51
+            fi
             send_message="$2"
-            #shift 2     #-- 如果不够两个将会失败，造成死循环
-            shift
-            [[ $# -gt 0 ]] && shift
+            shift 2
             ;;
 #        --)
 #            shift
@@ -145,6 +147,20 @@ else
     send_data="{\"msgtype\": \"markdown\", \"markdown\": {\"title\": \"${_escaped_title}\", \"text\": \"${_escaped_message}\"}}"
 fi
 
-curl -s -X POST -H "${send_header}" -d "${send_data}" "${dingding_api_url}" || { echo "Error sending message" >&2 ; exit 1; }
+_http_code=$(curl -s -o /tmp/dingding_resp.$$ -w '%{http_code}' -X POST -H "${send_header}" -d "${send_data}" "${dingding_api_url}") || { echo "Error: curl request failed" >&2; rm -f /tmp/dingding_resp.$$; exit 1; }
+_resp=$(cat /tmp/dingding_resp.$$)
+rm -f /tmp/dingding_resp.$$
+if [[ "${_http_code}" -ne 200 ]]; then
+    echo -e "\n猪猪侠警告：HTTP请求失败，状态码: ${_http_code}，响应: ${_resp}\n" >&2
+    exit 1
+fi
+if command -v jq > /dev/null 2>&1; then
+    _errcode=$(echo "${_resp}" | jq -r '.errcode // 0')
+    if [[ "${_errcode}" -ne 0 ]]; then
+        echo -e "\n猪猪侠警告：钉钉API返回错误码: ${_errcode}，响应: ${_resp}\n" >&2
+        exit 1
+    fi
+fi
+echo "${_resp}"
 
 
