@@ -132,7 +132,9 @@ fi
 
 send_header="Content-Type: application/json; charset=utf-8"
 
-send_message="### ${send_title} \n---\n${send_message} \n\n---\n\n*发自: ${_hostname}*\n\n*时间: ${_datetime}*\n\n"
+# 使用 printf 产生真实换行符，jq 会将其正确编码为 JSON 的 \n
+printf -v send_message '### %s \n---\n%s \n\n---\n\n*发自: %s*\n\n*时间: %s*\n\n' \
+    "${send_title}" "${send_message}" "${_hostname}" "${_datetime}"
 
 # 使用jq安全构建JSON，避免特殊字符破坏JSON结构
 if command -v jq > /dev/null 2>&1; then
@@ -141,9 +143,9 @@ if command -v jq > /dev/null 2>&1; then
         --arg text "${send_message}" \
         '{msgtype: "markdown", markdown: {title: $title, text: $text}}')
 else
-    # fallback: 简单转义双引号和反斜杠
-    _escaped_title=$(echo "${send_title}" | sed 's/\\/\\\\/g; s/"/\\"/g')
-    _escaped_message=$(echo "${send_message}" | sed 's/\\/\\\\/g; s/"/\\"/g')
+    # fallback: 转义反斜杠、双引号，并将真实换行符替换为 JSON 转义的 \n
+    _escaped_title=$(printf '%s' "${send_title}" | sed 's/\\/\\\\/g; s/"/\\"/g')
+    _escaped_message=$(printf '%s' "${send_message}" | sed 's/\\/\\\\/g; s/"/\\"/g' | sed ':a;N;$!ba;s/\n/\\n/g')
     send_data="{\"msgtype\": \"markdown\", \"markdown\": {\"title\": \"${_escaped_title}\", \"text\": \"${_escaped_message}\"}}"
 fi
 
