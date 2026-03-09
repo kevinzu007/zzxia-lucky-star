@@ -11,3 +11,18 @@
 
 # .nfs files are created when an open file is removed but is still being accessed
 .nfs*
+
+# 用户数据文件
+people.list
+people.list---*
+
+# Python
+*.pyc
+__pycache__/
+
+# macOS
+.DS_Store
+
+# IDE
+.idea/
+.vscode/
